@@ -56,12 +56,7 @@ export default function page() {
       <Link href="/play" className="text-blue-500 hover:underline">
       Join a game!
       </Link>
-      <button
-        onClick={handleSignOut}
-        className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-500 mt-4"
-      >
-        Sign Out
-      </button>
+      
     </div>
   
   );}

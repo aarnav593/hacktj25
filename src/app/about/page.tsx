@@ -1,17 +1,14 @@
 import React from "react";
 
-const AboutPage = () => {
+export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-center mb-6">About BioBlitz</h1>
       <div className="text-lg text-gray-700">
         <p>
-          Welcome to BioBlitz! A fun and engaging platform where you can enhance
-          your biology knowledge through competitive quizzes and interactive
-          challenges. BioBlitz is designed for students, educators, and anyone
-          passionate about the fascinating world of biology. Our goal is to help
-          you grow your skills in various biological topics, ranging from genetics
-          to ecosystems.
+          Welcome to BioBlitz! This is a fun and engaging platform where you can enhance
+          your biology and medical knowledge through competitive quizzes and interactive
+          challenges. Our goal is to provide an engaging learning platform for students in biomed.
         </p>
 
         <h2 className="text-2xl font-semibold mt-6">Our Mission</h2>
