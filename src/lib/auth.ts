@@ -68,4 +68,4 @@ export async function signOutUser() {
 }
 
 // Export current user and setter globally
-export { globalUser as currentUser, setGlobalUser as setCurrentUser };
+export { auth, app };

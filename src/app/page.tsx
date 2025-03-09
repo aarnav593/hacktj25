@@ -7,6 +7,7 @@ import { signOut, getAuth, GoogleAuthProvider } from "firebase/auth";
 import { initializeApp } from "firebase/app"
 import { getDatabase, ref, get, child} from "firebase/database";
 import { useEffect, useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAe8sUJCUQvLxyBlKCqNLZyycFqwg93Jg0",
@@ -26,11 +27,10 @@ const firebaseConfig = {
 
 export default function page() {
   var auth = getAuth();
+  const [user] = useAuthState(auth);
   
   const handleSignOut = async () => {
     try {
-      localStorage.clear();
-
       await signOut(auth);
 
       window.location.href = "/login"; 
@@ -38,7 +38,7 @@ export default function page() {
       console.error("Error signing out: ", error);
     }
   };
-  if(!localStorage.getItem('user')){
+  if(!user){
     return (
       
       <div className = "text-center">

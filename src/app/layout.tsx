@@ -19,8 +19,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={font.className}>
         <Navbar />
-        {children}
+        {/* <div className="w-full flex justify-center items-center"> */}
+          {/* <div className="w-8/9 pt-10 shadow-2xl"> */}
+          {children}
+          {/* </div> */}
+        {/* </div> */}
       </body>
     </html>
+    
   );
 }
