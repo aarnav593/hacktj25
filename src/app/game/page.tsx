@@ -118,6 +118,7 @@ export default function GamePage() {
         alert("You are not the creator of this room!");
       }
     });
+    
   }
 
   const isCreator = async (): Promise<boolean> => {

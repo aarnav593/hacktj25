@@ -249,19 +249,8 @@ export default function CreateRoom() {
                             </div>
 
                             <div className="mb-5">
-                                <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="num-people">
-                                    Max time limit
-                                </label>
-                                <input
-                                    type="number"
-                                    id="limit"
-                                    name="limit"
-                                    value={numPeople}
-                                    onChange={(e) => setNumPeople(Number(e.target.value))}
-                                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                                    min="1"
-                                    required
-                                />
+                                
+                                
                             </div>
                             <button
             onClick={makeLoading}
@@ -287,21 +276,22 @@ export default function CreateRoom() {
                                                 <h3 className="text-3xl font-semibold mb-2">{room.roomName}</h3>
                                                 <p className="text-lg-600 text-gray-600">Source: {room.source}</p>
                                                 <p className="text-lg-600 text-gray-600">Questions: {room.numQuestions}</p>
-                                                <p className="text-lg-600 text-gray-600">Time limit per question: {room.numPeople}</p>
+                                                <p className="text-lg-600 text-gray-600">Difficulty: Extremely hard</p>
                                             </div>
+                                            <div className="flex flex-col gap-4">
                                             <button
                                                 onClick={() => joinRoom(room.id, user?.uid!)}
                                                 className="text-white text-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5"
                                             >
                                                 Join
                                             </button>
-
                                             <button
                                                 onClick={() => deleteRoom(room.id)}
                                                 className="text-red-600 hover:text-red-700 text-sm"
                                             >
                                                 Delete Room
                                             </button>
+                                            </div>
                                         </div>
                                     </li>
                                 ))}
