@@ -12,7 +12,7 @@ import { auth } from "../../lib/auth";
 const db = getDatabase();
 
 const openai = new OpenAI({
-    apiKey: "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",
+    apiKey: "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",
     dangerouslyAllowBrowser: true
 });
 
@@ -150,11 +150,11 @@ export default function CreateRoom() {
         });
     };
 
-    const [loading, setLoading] = useState(false);
+    //const [loading, setLoading] = useState(false);
 
-    const makeLoading = () => {
+    /*const makeLoading = () => {
         setLoading(true);
-    };
+    };*/
     if (user != null) {
         return (
             <div>
@@ -253,12 +253,12 @@ export default function CreateRoom() {
                                 
                             </div>
                             <button
-            onClick={makeLoading}
+            //onClick={makeLoading}
             type="submit"   
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-            disabled={loading}
+            //disabled={loading}
         >
-            {loading ? "Loading..." : "Create Room"}
+            Create Room
         </button>
                         </form>
                     </div>

@@ -107,6 +107,7 @@ export default function GamePage() {
       stataFin = true;
     }
   };
+  
 
   const deleteRoom = () => {
     const data = get(ref(db, `rooms/${roomId}`));
