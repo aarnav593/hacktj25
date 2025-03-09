@@ -1,105 +1,92 @@
 "use client";
-
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { getDatabase, ref, onValue } from "firebase/database";
-import { useEffect, useState } from "react";
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { useSearchParams } from "next/navigation";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "../../lib/auth"; // Assuming auth is properly initialized
 
-const firebaseConfig = {
-    apiKey: "AIzaSyAe8sUJCUQvLxyBlKCqNLZyycFqwg93Jg0",
-    authDomain: "bioblitz-367b6.firebaseapp.com",
-    databaseURL: "https://bioblitz-367b6-default-rtdb.firebaseio.com",
-    projectId: "bioblitz-367b6",
-    storageBucket: "bioblitz-367b6.firebasestorage.app",
-    messagingSenderId: "821109453859",
-    appId: "1:821109453859:web:f60724742956f22548ed96",
-    measurementId: "G-731TXJB1N2"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
+const db = getDatabase();
 
 export default function GamePage() {
-    const searchParams = useSearchParams();
-    const roomId = searchParams.get("roomId"); // Correct way to get query param
+    const [user] = useAuthState(auth);
+    const [questions, setQuestions] = useState<any[]>([]);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const router = useRouter();
+    const roomId = new URLSearchParams(window.location.search).get("roomId") as string;
 
-    const [roomData, setRoomData] = useState(null);
-    const [userAnswer, setUserAnswer] = useState(""); // Store user input for the answer
-    const [feedback, setFeedback] = useState(""); // Store feedback message
-
+    // Fetch room data from Firebase
     useEffect(() => {
-        if (!roomId) return; // Exit if roomId is null
-
         const roomRef = ref(db, `rooms/${roomId}`);
-
-        // Fetch initial data
-        const unsubscribe = onValue(roomRef, (snapshot) => {
-            setRoomData(snapshot.val());
+        onValue(roomRef, (snapshot) => {
+            const roomData = snapshot.val();
+            if (roomData && roomData.Questions) {
+                const questionArray = Object.values(roomData.Questions);
+                setQuestions(questionArray);
+            } else {
+                setQuestions([]);
+            }
         });
-
-        return () => unsubscribe(); // Cleanup listener when component unmounts
     }, [roomId]);
 
-    const handleSubmitAnswer = () => {
-        const questionData = roomData?.Questi; 
-        const correctAnswer = Questi?.correct;
-
-        // Check user's answer
-        if (userAnswer.toLowerCase() === correctAnswer?.toLowerCase()) {
-            setFeedback("Correct!");
-        } else {
-            setFeedback("Incorrect. Try again!");
-        }
-
-        // Optionally, clear the input after submission
-        setUserAnswer("");
+    const handleAnswerSelection = (answer: string) => {
+        setSelectedAnswer(answer);
     };
 
+    const handleNextQuestion = () => {
+        setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+        setSelectedAnswer(null); // Reset selected answer for next question
+    };
+
+    if (!user) {
+        return <div>You need to sign in to play the game!</div>;
+    }
+
+    // Handle game end when all questions are answered
+    if (currentQuestionIndex >= questions.length) {
+        return (
+            <div>
+                <h2>Game Over</h2>
+                <p>You've completed all the questions!</p>
+                <button onClick={() => router.push("/")}>Go to Home</button>
+            </div>
+        );
+    }
+
+    const question = questions[currentQuestionIndex];
+
     return (
-        <div className="game-container">
-            <header className="game-header">
-                <h1 className="room-title">Room ID: {roomId}</h1>
-            </header>
-            <main className="game-main">
-                {!roomData ? (
-                    <p className="loading-message">Loading room data...</p>
-                ) : (
-                    <div className="room-data">
-                        <h2>Room Data:</h2>
-                        <pre className="room-data-json">{JSON.stringify(roomData, null, 2)}</pre>
-                    </div>
-                )}
-                {/* Question and answer form */}
-                {roomData && roomData.Questi && (
-                    <div className="question-section">
-                        <h2>Question: {roomData.Questi.question}</h2>
-                        <div className="answer-options">
-                            <button>{roomData.Questi.A}</button>
-                            <button>{roomData.Questi.B}</button>
-                            <button>{roomData.Questi.C}</button>
-                            <button>{roomData.Questi.D}</button>
-                            <button>{roomData.Questi.E}</button>
-                        </div>
-                       
-                        <input
-                            type="text"
-                            value={userAnswer}
-                            onChange={(e) => setUserAnswer(e.target.value)}
-                            placeholder="Enter your answer"
-                            className="user-input"
-                        />
-                        {/* Submit button */}
-                        <button onClick={handleSubmitAnswer} className="submit-btn">
-                            Submit Answer
+        <div className="max-w-2xl mx-auto mt-10">
+            <h2 className="text-3xl text-center mb-6">{`Question ${currentQuestionIndex + 1}`}</h2>
+            <p className="text-xl mb-4">{question.question}</p>
+
+            <div className="mb-5">
+                <div className="space-y-4">
+                    {["a", "b", "c", "d", "e"].map((choice) => (
+                        <button
+                            key={choice}
+                            onClick={() => handleAnswerSelection(choice)}
+                            className={`w-full p-2.5 border rounded-lg text-white ${
+                                selectedAnswer === choice
+                                    ? "bg-blue-700"
+                                    : "bg-gray-300 hover:bg-gray-400"
+                            }`}
+                        >
+                            {question[choice]}
                         </button>
-                        {/* Display feedback */}
-                        {feedback && <p className="feedback-message">{feedback}</p>}
-                    </div>
-                )}
-            </main>
+                    ))}
+                </div>
+            </div>
+
+            <div className="mt-5">
+                <button
+                    onClick={handleNextQuestion}
+                    disabled={!selectedAnswer}
+                    className="w-full p-2.5 bg-blue-700 text-white rounded-lg"
+                >
+                    Next Question
+                </button>
+            </div>
         </div>
     );
-    
 }

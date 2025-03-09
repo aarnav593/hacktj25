@@ -16,8 +16,6 @@ export default function loginPage() {
   const [user] = useAuthState(auth);
 
   const signInWithGoogle = async () => {
-
-
     try {
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
@@ -40,8 +38,8 @@ export default function loginPage() {
   });
   if (user == null) {
     return (
-      <div style={styles.container}>
-        <button style={styles.button} onClick={signInWithGoogle} className="bg-zinc-900">
+      <div className="flex items-center justify-center">
+        <button onClick={signInWithGoogle} className="cursor-pointer bg-zinc-900 text-4xl p-6 text-white rounded-lg">
           {clicked ? "" : "Sign in with google"}
         </button>
       </div>
@@ -54,19 +52,3 @@ export default function loginPage() {
     )
   }
 }
-
-
-
-const styles = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-  },
-  button: {
-    padding: "10px 20px",
-    fontSize: "16px",
-    cursor: "pointer",
-  },
-};

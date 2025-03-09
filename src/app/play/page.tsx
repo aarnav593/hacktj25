@@ -1,45 +1,50 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { getDatabase, ref, onValue, set, update, push } from "firebase/database";
+import { getDatabase, ref, onValue, push } from "firebase/database";
 import { getAuth } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { useRouter } from "next/navigation";
 import { FormEvent } from "react";
 import OpenAI from "openai";
-import router from "next/router";
 import Link from "next/link";
+import { auth } from "../../lib/auth";
+const db = getDatabase();
 
-// Firebase config
-const firebaseConfig = {
-    apiKey: "AIzaSyAe8sUJCUQvLxyBlKCqNLZyycFqwg93Jg0",
-    authDomain: "bioblitz-367b6.firebaseapp.com",
-    databaseURL: "https://bioblitz-367b6-default-rtdb.firebaseio.com",
-    projectId: "bioblitz-367b6",
-    storageBucket: "bioblitz-367b6.firebasestorage.app",
-    messagingSenderId: "821109453859",
-    appId: "1:821109453859:web:f60724742956f22548ed96",
-    measurementId: "G-731TXJB1N2"
+const openai = new OpenAI({
+    apiKey: "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",
+    dangerouslyAllowBrowser: true
+});
+
+// Define the Question type
+type Question = {
+    question: string;
+    a: string;
+    b: string;
+    c: string;
+    d: string;
+    e: string;
+    correct: string;
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase();
+// Define the RoomData type with the Questions field as a Record of number to Question
+type RoomData = {
+    roomName: string;
+    source: string;
+    numQuestions: number;
+    numPeople: number;
+    Questions: Record<number, Question>; // Ensures TypeScript knows the structure
+};
 
 export default function CreateRoom() {
     const [user] = useAuthState(auth);
     const [rooms, setRooms] = useState<{ id: string; roomName: string; source: string; numQuestions: number; numPeople: number }[]>([]);
     const [roomName, setRoomName] = useState("");
     const [questionSource, setQuestionSource] = useState("random");
-    const [diff, setDiff] = useState("easy")
-    const [topic, setTopic] = useState("general")
+    const [diff, setDiff] = useState("easy");
+    const [topic, setTopic] = useState("general");
     const [numQuestions, setNumQuestions] = useState(10);
     const [numPeople, setNumPeople] = useState(1);
-    //const toggleCorrectAnswer = () => {
-       // setShowCorrectAnswer((prev) => !prev);
-  //  };
-
     const router = useRouter();
 
     // Fetch rooms from Firebase
@@ -60,88 +65,81 @@ export default function CreateRoom() {
     }, []);
 
     // Handle room creation
-    const makeRoom = (event: FormEvent<HTMLFormElement>) => {
-        const openai = new OpenAI(
-            {
-                apiKey: "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",
-                dangerouslyAllowBrowser: true
-            })
+    const makeRoom = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const roomId = Date.now().toString(); // Unique room ID using timestamp
-        // Generate question first
-        let roomsRef;
-        let roomData;
-        for(let i = 1; i < numQuestions; i++){
-        generateQuestion(diff, questionSource,  topic, i);
 
-
-         roomsRef = ref(db, "rooms/" + roomId);
-         /*roomData = {
+        // Initialize room data
+        let roomsRef = ref(db, "rooms/" + roomId);
+        let roomData: RoomData = {
             roomName,
             source: questionSource,
             numQuestions,
             numPeople,
-            Questions: {
-                [i]: {
-                    question: "", 
-                    a: "",
-                    b: "",
-                    c: "",
-                    d: "",
-                    e: "",
-                    correct: ""
-                }
-            }
-        };}*/
+            Questions: {} // Initialize as an empty object for storing questions
+        };
 
-        // Instead of updating the "questions" node, we are now updating the correct "Questions" node
-        
 
-        // Set room data in Firebase
-        push(roomsRef!, roomData);
 
-        // Generate and set the question data in the "questions" folder
-        async function generateQuestion(diff: string, ques: string, top: string,iterations:Number) {
-            const modal = diff === "easy" ? "gpt-4o-mini" : "gpt-4o";
 
-            const completion = await openai.chat.completions.create({
-                model: modal,
-                messages: [
-                    {
-                        role: "system",
-                        content: "Return a unique "+ques+" style," +diff+ "question relating to the following topic, and return it in the json form: {question:'',a:'',b:'',c:'',d:'',e:'',correct:''}"
-                    },
-                    {
-                        role: "user",
-                        content: top
-                    }
-                ],
-                store: true,
-            });
 
-            const questionData = JSON.parse(completion.choices[0]?.message?.content || "{}");
 
-            // Update the room with the question data
-            update(ref(db, "rooms/"+roomId+"/questions/"+iterations), questionData);
+
+// Generate questions and store them in the roomData object
+for (let i = 1; i <= numQuestions; i++) {
+    try {
+        const questionData = await generateQuestion(diff, questionSource, topic, i); // Await question generation
+        if (questionData && questionData.question) {
+            roomData.Questions[i] = questionData; // Add question data to the room
+        } else {
+            console.error(`Question ${i} failed to generate properly.`);
         }
+    } catch (error) {
+        console.error(`Error generating question ${i}:`, error);
+    }
+}
+
+        // Push room data with all generated questions to Firebase
+        await push(roomsRef, roomData);
 
         // Redirect to the newly created room
         router.push(`/game?roomId=${roomId}`);
     };
-    };
+
+    // Function to generate questions using OpenAI
+    async function generateQuestion(diff: string, ques: string, top: string, iterations: number): Promise<Question> {
+        const modal = diff === "easy" ? "gpt-4o-mini" : "gpt-4o";
+
+        // Generate question using OpenAI API
+        const completion = await openai.chat.completions.create({
+            model: modal,
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a helpful assistant. Return a UNIQUE "+ ques+ " style, " +diff+ " question relating to the following topic, and your response will strictly be in JSON format as follows, with double quotes (not single quotes), without any extra characters or explanations: {'question':'','a':'','b':'','c':'','d':'','e':'','correct':''}"
+                },
+                {
+                    role: "user",
+                    content: top
+                }
+            ]
+        });
+        console.log(completion.choices[0].message.content);
+        const questionData = JSON.parse(completion.choices[0]?.message?.content || "{}");
+
+        // Ensure the data returned matches the Question structure
+        return questionData as Question;
+    }
+
     // Handle joining a room
     const joinRoom = (roomId: string) => {
         router.push(`/game?roomId=${roomId}`);
     };
-    
-   // const toggleCorrectAnswer = () => {
- //       setShowCorrectAnswer((prev) => !prev);
-  //  };
 
     if (user != null) {
         return (
-            <div className="max-w-2xl mx-auto mt-10">
-                {/* Create Room Form */}
+            <div className="mt-10 flex gap-8">
+                <div className="w-1/3">
                 <h2 className="text-3xl text-center mb-6">Create a New Room</h2>
                 <form onSubmit={makeRoom} className="mb-10">
                     <div className="mb-5">
@@ -171,16 +169,16 @@ export default function CreateRoom() {
                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required
                         >
-                            <option value="USABO">USABO</option>
-                            <option value="USMLE">USMLE</option>
-                            <option value="NSB">NSB</option>
-                            <option value="MCAT">MCAT</option>
-                            <option value="BBO">BBO</option>
+                            <option value="USA biology olympiad">USABO</option>
+                            <option value="United states medical licensing exam">USMLE</option>
+                            <option value="national science bowl">NSB</option>
+                            <option value="medical college admissions test">MCAT</option>
+                            <option value="british biology olympiad">BBO</option>
                         </select>
                     </div>
-    
+
                     <div className="mb-5">
-                        <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="question-source">
+                        <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="difficulty">
                             Difficulty
                         </label>
                         <select
@@ -191,14 +189,13 @@ export default function CreateRoom() {
                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             required
                         >
-                            <option value="Easy">Easy</option>
-                            <option value="Medium">Medium</option>
-                            <option value="Difficult">Difficult</option>
-                            <option value="Extremely Difficult">Extremely Difficult</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="difficult">Difficult</option>
+                            <option value="extremely difficult">Extremely Difficult</option>
                         </select>
                     </div>
-    
-    
+
                     <div className="mb-5">
                         <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="num-questions">
                             Number of Questions
@@ -214,24 +211,20 @@ export default function CreateRoom() {
                             required
                         />
                     </div>
-    
+
                     <div className="mb-5">
-                        <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="num-questions">
-                        Topic 
-            
-                                </label>
+                        <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="topic">
+                            Topic
+                        </label>
                         <input
                             id="topic"
                             name="topic"
                             value={topic}
                             onChange={(e) => setTopic(e.target.value)}
                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                            min="1"
-                            
                         />
                     </div>
-    
-                   
+
                     <div className="mb-5">
                         <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="num-people">
                             Number of People
@@ -254,8 +247,9 @@ export default function CreateRoom() {
                         Create Room
                     </button>
                 </form>
-    
-                {/* List of available rooms */}
+                </div>
+                <div className="w-2/3">
+                    {/* List of available rooms */}
                 <h2 className="text-3xl text-center mb-6">Available Rooms</h2>
                 {rooms.length === 0 ? (
                     <p className="text-center text-gray-500">No rooms available. Create one!</p>
@@ -281,6 +275,7 @@ export default function CreateRoom() {
                         ))}
                     </ul>
                 )}
+                </div>
             </div>
         );
     } else {
@@ -288,10 +283,9 @@ export default function CreateRoom() {
             <div>
                 <div className="text-4xl text-center">You are not signed in!</div>
                 <div className="text-lg text-center">
-                To sign in, click here: <Link href="/login" className="underline">Login</Link>
+                    To sign in, click here: <Link href="/login" className="underline">Login</Link>
                 </div>
             </div>
-            
         );
     }
 }

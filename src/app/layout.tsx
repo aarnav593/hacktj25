@@ -17,13 +17,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={font.className}>
+      <body className={`${font.className} h-screen`}>
         <Navbar />
-        {/* <div className="w-full flex justify-center items-center"> */}
-          {/* <div className="w-8/9 pt-10 shadow-2xl"> */}
+        <div className="w-full flex justify-center h-max pb-20">
+          <div className="w-8/9 pt-10 h-max">
           {children}
-          {/* </div> */}
-        {/* </div> */}
+          </div>
+        </div>
       </body>
     </html>
     

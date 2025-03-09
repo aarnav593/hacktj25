@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../../lib/auth";
 import { usePathname } from "next/navigation"; 
+import logo from "../logo.png";
 
 
 export default function Navbar () {
@@ -14,15 +15,15 @@ export default function Navbar () {
           <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
             <div className="flex gap-4">
               <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse ml-2">
-                <span className="self-center text-xl whitespace-nowrap text-zinc-400">BioBlitz</span>
+                <Image src={logo}  alt="Bioblitz logo" width={50} height={50} />
               </Link>
               <div className="items-center justify-between w-full" id="navbar-user">
                 <ul className="flex">
                   <li>
-                    <Link href="/play" className="block py-2 px-3 text-zinc-400 text-sm rounded-sm hover:text-zinc-100">Play</Link>
+                    <Link href="/play" className="block py-2 px-3 text-zinc-400 my-auto text-large rounded-sm hover:text-zinc-100">Play</Link>
                   </li>
                   <li>
-                    <Link href="/about" className="block py-2 px-3 text-zinc-400 text-sm rounded-sm hover:text-zinc-100">About</Link>
+                    <Link href="/about" className="block py-2 px-3 text-zinc-400 my-auto text-large rounded-sm hover:text-zinc-100">About</Link>
                   </li>
                 </ul>
               </div>
