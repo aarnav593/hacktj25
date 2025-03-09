@@ -9,6 +9,7 @@ import { initializeApp } from "firebase/app"
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, } from "firebase/auth";
 import {auth} from "../../lib/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { redirect } from "next/navigation";
 
 export default function loginPage() {
 
@@ -26,7 +27,7 @@ export default function loginPage() {
       console.error("Sign-in error:", error);
     }
     setClicked(!clicked);
-
+    redirect("./play");
   };
 
   auth.onAuthStateChanged(user => {
@@ -41,6 +42,7 @@ export default function loginPage() {
       <div className="flex items-center justify-center">
         <button onClick={signInWithGoogle} className="cursor-pointer bg-zinc-900 text-4xl p-6 text-white rounded-lg">
           {clicked ? "" : "Sign in with google"}
+          
         </button>
       </div>
     );

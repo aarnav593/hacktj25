@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { getDatabase, ref, onValue, push } from "firebase/database";
+import { getDatabase, ref, onValue, push, set } from "firebase/database";
 import { getAuth } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { useRouter } from "next/navigation";
@@ -86,7 +86,7 @@ export default function CreateRoom() {
 
 
 // Generate questions and store them in the roomData object
-for (let i = 1; i <= numQuestions; i++) {
+for (let i = 0; i < numQuestions; i++) {
     try {
         const questionData = await generateQuestion(diff, questionSource, topic, i); // Await question generation
         if (questionData && questionData.question) {
@@ -100,7 +100,7 @@ for (let i = 1; i <= numQuestions; i++) {
 }
 
         // Push room data with all generated questions to Firebase
-        await push(roomsRef, roomData);
+        await set(roomsRef, roomData);
 
         // Redirect to the newly created room
         router.push(`/game?roomId=${roomId}`);
@@ -138,6 +138,8 @@ for (let i = 1; i <= numQuestions; i++) {
 
     if (user != null) {
         return (
+            <div>
+            <div className="text-5xl text-center">Play BioBlitz</div>
             <div className="mt-10 flex gap-8">
                 <div className="w-1/3">
                 <h2 className="text-3xl text-center mb-6">Create a New Room</h2>
@@ -276,6 +278,7 @@ for (let i = 1; i <= numQuestions; i++) {
                     </ul>
                 )}
                 </div>
+            </div>
             </div>
         );
     } else {

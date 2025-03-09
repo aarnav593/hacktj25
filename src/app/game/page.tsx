@@ -1,92 +1,129 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getDatabase, ref, onValue } from "firebase/database";
+import { useSearchParams } from "next/navigation"; // Add this import
+import { getDatabase, ref, get } from "firebase/database";
+import { auth } from "../../lib/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "../../lib/auth"; // Assuming auth is properly initialized
+import Link from 'next/link'
 
 const db = getDatabase();
 
 export default function GamePage() {
-    const [user] = useAuthState(auth);
-    const [questions, setQuestions] = useState<any[]>([]);
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const router = useRouter();
-    const roomId = new URLSearchParams(window.location.search).get("roomId") as string;
+  const [user] = useAuthState(auth);
+  const [questions, setQuestions] = useState<any[]>([]); // Store all the questions
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Track current question
+  const [showResult, setShowResult] = useState<string>(""); // Show the result (Correct or Incorrect)
+  const searchParams = useSearchParams(); // Use this to get query parameters
+  const roomId = searchParams.get("roomId"); // Get the roomId from the URL query
+console.log(roomId);
+  // Fetch room data from Firebase and load questions
+  useEffect(() => {
+    if (roomId) {
+      const roomRef = ref(db, `rooms/${roomId}`);
+      get(roomRef).then((snapshot) => {
+        const roomData = snapshot.val();
+        if (roomData && roomData.Questions) {
+          const questionsArray = Object.values(roomData.Questions);
+          setQuestions(questionsArray);
+        }
+      });
+    }
+  }, [roomId]);
 
-    // Fetch room data from Firebase
-    useEffect(() => {
-        const roomRef = ref(db, `rooms/${roomId}`);
-        onValue(roomRef, (snapshot) => {
-            const roomData = snapshot.val();
-            if (roomData && roomData.Questions) {
-                const questionArray = Object.values(roomData.Questions);
-                setQuestions(questionArray);
-            } else {
-                setQuestions([]);
-            }
-        });
-    }, [roomId]);
-
-    const handleAnswerSelection = (answer: string) => {
-        setSelectedAnswer(answer);
-    };
-
-    const handleNextQuestion = () => {
-        setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-        setSelectedAnswer(null); // Reset selected answer for next question
-    };
-
-    if (!user) {
-        return <div>You need to sign in to play the game!</div>;
+  // Handle button click for checking answer
+  const handleAnswerClick = (selectedAnswer: string) => {
+    const currentQuestion = questions[currentQuestionIndex];
+    if (selectedAnswer === currentQuestion.correct) {
+      setShowResult("Correct!");
+    } else {
+      setShowResult("Incorrect!");
     }
 
-    // Handle game end when all questions are answered
-    if (currentQuestionIndex >= questions.length) {
-        return (
-            <div>
-                <h2>Game Over</h2>
-                <p>You've completed all the questions!</p>
-                <button onClick={() => router.push("/")}>Go to Home</button>
-            </div>
-        );
-    }
+    // Move to the next question after a delay (for user feedback)
+    setTimeout(() => {
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setShowResult(""); // Reset the result message
+      } else {
+        setShowResult("Quiz Finished!");
+      }
+    }, 1000);
+  };
 
-    const question = questions[currentQuestionIndex];
-
+  if (!user) {
     return (
-        <div className="max-w-2xl mx-auto mt-10">
-            <h2 className="text-3xl text-center mb-6">{`Question ${currentQuestionIndex + 1}`}</h2>
-            <p className="text-xl mb-4">{question.question}</p>
-
-            <div className="mb-5">
-                <div className="space-y-4">
-                    {["a", "b", "c", "d", "e"].map((choice) => (
-                        <button
-                            key={choice}
-                            onClick={() => handleAnswerSelection(choice)}
-                            className={`w-full p-2.5 border rounded-lg text-white ${
-                                selectedAnswer === choice
-                                    ? "bg-blue-700"
-                                    : "bg-gray-300 hover:bg-gray-400"
-                            }`}
-                        >
-                            {question[choice]}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <div className="mt-5">
-                <button
-                    onClick={handleNextQuestion}
-                    disabled={!selectedAnswer}
-                    className="w-full p-2.5 bg-blue-700 text-white rounded-lg"
-                >
-                    Next Question
-                </button>
-            </div>
+      <div>
+        <div className="text-4xl text-center">You are not signed in!</div>
+        <div className="text-lg text-center">
+          To sign in, click here: <Link href="/login" className="underline">Login</Link>
         </div>
+      </div>
     );
+  }
+
+  if (questions.length === 0) {
+    return <div>Loading questions...</div>;
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
+
+  return (
+    <div className="max-w-2xl mx-auto mt-10">
+      {/* Display question */}
+      <div className="mb-5 text-center">
+        <p className="text-xl font-semibold mb-3">{currentQuestion.question}</p>
+      </div>
+
+      {/* Display answer choices */}
+      <div className="grid grid-cols-1 gap-4">
+        <button
+          onClick={() => handleAnswerClick("a")}
+          className="bg-blue-500 text-white rounded-lg px-5 py-2 hover:bg-blue-600"
+        >
+          {currentQuestion.a}
+        </button>
+        <button
+          onClick={() => handleAnswerClick("b")}
+          className="bg-blue-500 text-white rounded-lg px-5 py-2 hover:bg-blue-600"
+        >
+          {currentQuestion.b}
+        </button>
+        <button
+          onClick={() => handleAnswerClick("c")}
+          className="bg-blue-500 text-white rounded-lg px-5 py-2 hover:bg-blue-600"
+        >
+          {currentQuestion.c}
+        </button>
+        <button
+          onClick={() => handleAnswerClick("d")}
+          className="bg-blue-500 text-white rounded-lg px-5 py-2 hover:bg-blue-600"
+        >
+          {currentQuestion.d}
+        </button>
+        <button
+          onClick={() => handleAnswerClick("e")}
+          className="bg-blue-500 text-white rounded-lg px-5 py-2 hover:bg-blue-600"
+        >
+          {currentQuestion.e}
+        </button>
+      </div>
+
+      {/* Display result message */}
+      {showResult && (
+        <div className="mt-4 text-center">
+          <p className={`text-2xl ${showResult === "Correct!" ? "text-green-500" : "text-red-500"}`}>
+            {showResult}
+          </p>
+        </div>
+      )}
+
+      {/* Display next question */}
+      {currentQuestionIndex === questions.length - 1 && (
+        <div className="mt-5 text-center">
+          <p className="text-2xl font-semibold">Quiz Finished!</p>
+        </div>
+      )}
+    </div>
+  );
 }
