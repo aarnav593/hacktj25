@@ -1,12 +1,11 @@
+"use client";
 import Link from "next/link";
-import Image from "next/image";
-
-let userObject;
-if (localStorage.getItem("user")) {
-  userObject = JSON.parse(localStorage.getItem("user")!);
-}
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from "../../lib/firebaseConfig";
+import { Logout } from "./auth";
 
 export default function Navbar () {
+    const [user] = useAuthState(auth);
     return (
         <nav className="border-zinc-200 bg-zinc-900 text-zinc-400">
           <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
@@ -26,7 +25,7 @@ export default function Navbar () {
               </div>
             </div>
             {
-              !localStorage.getItem('user') ? (
+              user == null ? (
                 <div className="flex">
                   <Link href="/login" className="block py-2 px-3 text-zinc-400 rounded-sm">Log In</Link>
                 </div>
@@ -34,18 +33,10 @@ export default function Navbar () {
                 <div className="flex items-center justify-center gap-4">
                   <div className="flex flex-col text-xs">
                     <div className="text-white align-middle text-center">Welcome, </div>
-                    <div className="text-white align-middle text-center">{userObject.displayName!}!</div>
+                    <div className="text-white align-middle text-center">{user.displayName}!</div>
                   </div>
                   <Link href="/play" className="block text-zinc-400 rounded-sm">
-                    <button
-                      onClick={() => {
-                        localStorage.removeItem("user"); // Remove user
-                        window.location.reload(); // Refresh to update UI
-                      }}
-                      className="block py-2 px-3 text-zinc-900 bg-red-500 rounded-sm hover:bg-red-700"
-                    >
-                      Log Out
-                    </button>
+                    <Logout />
                   </Link>
                 </div>
               )

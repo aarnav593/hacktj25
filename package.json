@@ -17,6 +17,7 @@
     "pages": "^0.0.16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-firebase-hooks": "^5.1.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

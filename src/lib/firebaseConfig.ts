@@ -18,4 +18,3 @@ const firebaseConfig = {
   const googleProvider = new GoogleAuthProvider();
 
   export {auth, googleProvider, signInWithPopup, signOut};
-export default firebase;
