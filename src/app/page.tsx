@@ -5,6 +5,8 @@ import Link from "next/link"
 import React from "react";
 import { signOut, getAuth, GoogleAuthProvider } from "firebase/auth";
 import { initializeApp } from "firebase/app"
+import { getDatabase, ref, get, child} from "firebase/database";
+import { useEffect, useState } from "react";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAe8sUJCUQvLxyBlKCqNLZyycFqwg93Jg0",
@@ -24,6 +26,7 @@ const firebaseConfig = {
 
 export default function page() {
   var auth = getAuth();
+  
   const handleSignOut = async () => {
     try {
       localStorage.clear();

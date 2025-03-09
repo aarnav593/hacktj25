@@ -8,7 +8,7 @@ import { signIn } from "next-auth/react";
 import { initializeApp } from "firebase/app"
 import {getAuth, GoogleAuthProvider, signInWithPopup, signOut,} from "firebase/auth";
 
-const [currentUser, setCurrentUser] = useState(null);
+//const [currentUser, setCurrentUser] = useState(null);
 
 const firebaseConfig = {
     apiKey: "AIzaSyAe8sUJCUQvLxyBlKCqNLZyycFqwg93Jg0",
@@ -52,7 +52,6 @@ export default function loginPage() {
     if (user) {
       console.log("User is signed in:", user);
       // Store user data in sessionStorage/localStorage
-      setCurrentUser(user);
       localStorage.setItem("user", JSON.stringify(user));
     } else {
       console.log("No user signed in.");

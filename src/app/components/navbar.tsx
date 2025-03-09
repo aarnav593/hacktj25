@@ -1,10 +1,13 @@
+"use client";
 import Link from "next/link";
 import Image from "next/image";
 
-let userObject;
-if (localStorage.getItem("user")) {
-  userObject = JSON.parse(localStorage.getItem("user")!);
-}
+const user = localStorage.getItem('user');
+let userObject = user ? JSON.parse(user) : null;
+let userName = user ? JSON.parse(user).displayName : null;
+
+
+
 
 export default function Navbar () {
     return (
@@ -34,7 +37,7 @@ export default function Navbar () {
                 <div className="flex items-center justify-center gap-4">
                   <div className="flex flex-col text-xs">
                     <div className="text-white align-middle text-center">Welcome, </div>
-                    <div className="text-white align-middle text-center">{userObject.displayName!}!</div>
+                    <div className="text-white align-middle text-center">{userName!}!</div>
                   </div>
                   <Link href="/play" className="block text-zinc-400 rounded-sm">
                     <button
