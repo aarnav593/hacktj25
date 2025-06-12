@@ -74,7 +74,7 @@ export const questionBank = [
     "e": "Order a chest X-ray",
     "correct": "b",
     "difficulty": "extremely difficult",
-    "competition": "british biology olympiad",
+    "competition": " smth medical licensing exam",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Mitochondrion_structure.svg/1000px-Mitochondrion_structure.svg.png"
   }
 ];
