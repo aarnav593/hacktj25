@@ -34,14 +34,14 @@ type RoomData = {
     Questions: Record<number, Question>;
 };
 
-async function generateQuestion(source:string, diff:string, topic:string, questionNum:number, roomData:RoomData) {
-    const completion = await OpenAI.chat.completions.create({
-        messages: [{ role: "system", content: `You are a question generator for a game. You will be given a source, difficulty, and topic. You must generate a question with 5 options (a,b,c,d,e) and a correct answer. The question must be in the following format: {"question": "", "a": "", "b": "", "c": "", "d": "", "e": "", "correct": ""}. The source for the question is ${source}. The difficulty is ${diff}. The topic is ${topic}.` }],
-         model: "o4-mini",
-       });
-    const question = JSON.parse(completion.choices[0].message.content!);
-    roomData.Questions[questionNum] = question;
- }
+// async function generateQuestion(source:string, diff:string, topic:string, questionNum:number, roomData:RoomData) {
+//     const completion = await OpenAI.chat.completions.create({
+//         messages: [{ role: "system", content: `You are a question generator for a game. You will be given a source, difficulty, and topic. You must generate a question with 5 options (a,b,c,d,e) and a correct answer. The question must be in the following format: {"question": "", "a": "", "b": "", "c": "", "d": "", "e": "", "correct": ""}. The source for the question is ${source}. The difficulty is ${diff}. The topic is ${topic}.` }],
+//         model: "gpt-4o",
+//       });
+//     const question = JSON.parse(completion.choices[0].message.content!);
+//     roomData.Questions[questionNum] = question;
+// }
 
 export default function CreateRoom() {
     const [user] = useAuthState(auth);
