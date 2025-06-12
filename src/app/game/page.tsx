@@ -155,78 +155,83 @@ export default function GamePage() {
 
   const currentQuestion = questions[currentQuestionIndex];
 
-
   return (
-    <div>
-      {currentQuestion ? (
-        <div className="max-w-2xl mx-auto mt-10">
-          <div className="mb-5 text-center">
-            <p className="text-xl font-semibold mb-3">
-              {currentQuestionIndex + 1}. {currentQuestion.question}
-            </p>
-            <p className="text-lg font-bold text-red-500">
-              Time Left: {timer}s
-            </p>
+  <div>
+  {currentQuestion ? (
+    <div className="max-w-2xl mx-auto mt-10">
+      <div className="mb-5 text-center">
+        <p className="text-xl font-semibold mb-3">
+          {currentQuestionIndex + 1}. {currentQuestion.question}
+        </p>
+        {   }
+        {currentQuestion.image && (
+          <div className="my-4">
+            <img 
+              src={currentQuestion.image} 
+              alt="Question illustration" 
+              className="max-w-full h-auto rounded-lg mx-auto" 
+            />
           </div>
-        </div>
-
-      ) : (
-        <p>Quiz Finished!</p>
-        //Put leaderboard here
-      )}
-
-
-      {currentQuestion && (
-        <div className="grid grid-cols-1 gap-4">
-          {["a", "b", "c", "d", "e"].map((option) => (
-            <button
-              key={option}
-              onClick={() => handleAnswerClick(option)}
-              className="bg-blue-500 text-white rounded-lg px-5 py-2 hover:bg-blue-600"
-            >
-              {currentQuestion[option]}
-            </button>
-          ))}
-        </div>
-      )}
-
-
-      {showResult && (
-        <div className="mt-4 text-center">
-          <p className={`text-2xl ${showResult.includes("Correct") ? "text-green-500" : "text-red-500"}`}>
-            {showResult}
-          </p>
-        </div>
-      )}
-
-      {currentQuestionIndex > questions.length - 1 && (
-        <div className="mt-5 text-center">
-
-          <h2 className="text-xl font-bold mt-4">Leaderboard</h2>
-          <ul className="mt-2">
-            {leaderboard
-              .sort((a, b) => b.score - a.score)
-              .map((player, index) => (
-                <li key={index} className="text-lg">
-                  {index + 1}. {player.name} - {player.score} pts
-                </li>
-              ))}
-          </ul>
-          <div className="mt-5">
-            <Link href="/" className="bg-gray-500 text-white rounded-lg px-5 py-2 hover:bg-gray-600">
-              Back to Main Page
-            </Link>
-            {isCreatorState ? (
-              <button onClick={deleteRoom} className="bg-red-500 text-white rounded-lg px-5 py-2 hover:bg-gray-600">
-                Delete room
-              </button>
-            ) : (
-              null
-            )}
-          </div>
-        </div>
-      )}
+        )}
+        <p className="text-lg font-bold text-red-500">
+          Time Left: {timer}s
+        </p>
+      </div>
     </div>
+  ) : (
+    <p>Quiz Finished!</p>
+    //Put leaderboard here
+  )}
+
+  {currentQuestion && (
+    <div className="grid grid-cols-1 gap-4">
+      {["a", "b", "c", "d", "e"].map((option) => (
+        <button
+          key={option}
+          onClick={() => handleAnswerClick(option)}
+          className="bg-blue-500 text-white rounded-lg px-5 py-2 hover:bg-blue-600"
+        >
+          {currentQuestion[option]}
+        </button>
+      ))}
+    </div>
+  )}
+
+  {showResult && (
+    <div className="mt-4 text-center">
+      <p className={`text-2xl ${showResult.includes("Correct") ? "text-green-500" : "text-red-500"}`}>
+        {showResult}
+      </p>
+    </div>
+  )}
+
+  {currentQuestionIndex > questions.length - 1 && (
+    <div className="mt-5 text-center">
+      <h2 className="text-xl font-bold mt-4">Leaderboard</h2>
+      <ul className="mt-2">
+        {leaderboard
+          .sort((a, b) => b.score - a.score)
+          .map((player, index) => (
+            <li key={index} className="text-lg">
+              {index + 1}. {player.name} - {player.score} pts
+            </li>
+          ))}
+      </ul>
+      <div className="mt-5">
+        <Link href="/" className="bg-gray-500 text-white rounded-lg px-5 py-2 hover:bg-gray-600">
+          Back to Main Page
+        </Link>
+        {isCreatorState ? (
+          <button onClick={deleteRoom} className="bg-red-500 text-white rounded-lg px-5 py-2 hover:bg-gray-600">
+            Delete room
+          </button>
+        ) : (
+          null
+        )}
+      </div>
+    </div>
+  )}
+</div>
   );
 }
 
