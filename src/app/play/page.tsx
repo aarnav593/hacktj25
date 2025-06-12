@@ -22,6 +22,7 @@ type Question = {
     correct: string;
     difficulty: string;
     competition: string;
+    image?: string;
 };
 
 type RoomData = {
@@ -44,13 +45,13 @@ type RoomData = {
 
 export default function CreateRoom() {
     const [user] = useAuthState(auth);
-    const [rooms, setRooms] = useState<{ id: string; roomName: string; source: string; numQuestions: number; numPeople: number }[]>([]);
+    const [rooms, setRooms] = useState<{ id: string; roomName: string; source: string; numQuestions: number; timeLimit: number }[]>([]);
     const [roomName, setRoomName] = useState("");
     const [questionSource, setQuestionSource] = useState("USA biology olympiad");
     const [diff, setDiff] = useState("easy");
     const [topic, setTopic] = useState("general "+questionSource);
     const [numQuestions, setNumQuestions] = useState(10);
-    const [numPeople, setNumPeople] = useState(1);
+    const [timeLimit, setTimeLimit] = useState(30); // Default time limit to 30 seconds
     const router = useRouter();
 
     useEffect(() => {
@@ -78,7 +79,7 @@ export default function CreateRoom() {
             roomName,
             source: questionSource,
             numQuestions,
-            timeLimit:numPeople,
+            timeLimit, // Use the new timeLimit state here
             ogCreator: user?.uid!,
             Questions: {}
         };
@@ -102,7 +103,6 @@ export default function CreateRoom() {
             roomData.Questions[index] = question;
         });
         
-        // Update the number of questions in roomData to reflect the actual number being used
         roomData.numQuestions = selectedQuestions.length;
 
         if (selectedQuestions.length === 0) {
@@ -216,6 +216,23 @@ export default function CreateRoom() {
                                     required
                                 />
                             </div>
+                            
+                            {/* New Time Limit Input */}
+                            <div className="mb-5">
+                                <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="time-limit">
+                                    Time Limit (seconds)
+                                </label>
+                                <input
+                                    type="number"
+                                    id="time-limit"
+                                    name="time-limit"
+                                    value={timeLimit}
+                                    onChange={(e) => setTimeLimit(Number(e.target.value))}
+                                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                    min="5"
+                                    required
+                                />
+                            </div>
 
                             <div className="mb-5">
                                 <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="topic">
@@ -229,17 +246,13 @@ export default function CreateRoom() {
                                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                 />
                             </div>
-
-                            <div className="mb-5">
-
-
-                            </div>
+                            
                             <button
-            type="submit"
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-        >
-            Create Room
-        </button>
+                                type="submit"
+                                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+                            >
+                                Create Room
+                            </button>
                         </form>
                     </div>
                     <div className="w-2/3">
