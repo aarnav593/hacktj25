@@ -3,14 +3,14 @@ import {getAuth, GoogleAuthProvider, signInWithPopup, signOut} from "firebase/au
 
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAe8sUJCUQvLxyBlKCqNLZyycFqwg93Jg0",
-    authDomain: "bioblitz-367b6.firebaseapp.com",
-    databaseURL: "https://bioblitz-367b6-default-rtdb.firebaseio.com",
-    projectId: "bioblitz-367b6",
-    storageBucket: "bioblitz-367b6.firebasestorage.app",
-    messagingSenderId: "821109453859",
-    appId: "1:821109453859:web:f60724742956f22548ed96",
-    measurementId: "G-731TXJB1N2"
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    databaseURL: process.env.FIREBASE_DATABASE_URL,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID,
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID
   };
 
   const app = initializeApp(firebaseConfig);
