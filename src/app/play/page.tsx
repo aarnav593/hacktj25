@@ -1,14 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { getDatabase, ref, onValue, set, get, remove } from "firebase/database";
-import { getAuth } from "firebase/auth";
+import { getDatabase, ref, onValue, set, get, remove, push } from "firebase/database";
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
 import Link from "next/link";
-// import OpenAI from "../../ai.js";
-import { auth } from "../../lib/auth";
-import { questionBank } from "../../lib/questionBank.js";
+import {auth, googleProvider, signInWithPopup} from "../../lib/auth";
 
 const db = getDatabase();
 
@@ -20,9 +16,6 @@ type Question = {
     d: string;
     e: string;
     correct: string;
-    difficulty: string;
-    competition: string;
-    image?: string;
 };
 
 type RoomData = {
@@ -34,24 +27,15 @@ type RoomData = {
     Questions: Record<number, Question>;
 };
 
-// async function generateQuestion(source:string, diff:string, topic:string, questionNum:number, roomData:RoomData) {
-//     const completion = await OpenAI.chat.completions.create({
-//         messages: [{ role: "system", content: `You are a question generator for a game. You will be given a source, difficulty, and topic. You must generate a question with 5 options (a,b,c,d,e) and a correct answer. The question must be in the following format: {"question": "", "a": "", "b": "", "c": "", "d": "", "e": "", "correct": ""}. The source for the question is ${source}. The difficulty is ${diff}. The topic is ${topic}.` }],
-//         model: "gpt-4o",
-//       });
-//     const question = JSON.parse(completion.choices[0].message.content!);
-//     roomData.Questions[questionNum] = question;
-// }
-
 export default function CreateRoom() {
     const [user] = useAuthState(auth);
     const [rooms, setRooms] = useState<{ id: string; roomName: string; source: string; numQuestions: number; timeLimit: number }[]>([]);
     const [roomName, setRoomName] = useState("");
     const [questionSource, setQuestionSource] = useState("USA biology olympiad");
     const [diff, setDiff] = useState("easy");
-    const [topic, setTopic] = useState("general "+questionSource);
+    const [topic, setTopic] = useState("general " + questionSource);
     const [numQuestions, setNumQuestions] = useState(10);
-    const [timeLimit, setTimeLimit] = useState(30); // Default time limit to 30 seconds
+    const [timeLimit, setTimeLimit] = useState(30);
     const router = useRouter();
 
     useEffect(() => {
@@ -74,47 +58,70 @@ export default function CreateRoom() {
         event.preventDefault();
         const roomId = Date.now().toString();
 
-        let roomsRef = ref(db, "rooms/" + roomId);
-        let roomData: RoomData = {
-            roomName,
-            source: questionSource,
-            numQuestions,
-            timeLimit, // Use the new timeLimit state here
-            ogCreator: user?.uid!,
-            Questions: {}
-        };
+        const categoryRef = ref(db, `questions/${questionSource}/${diff}`);
+        const snapshot = await get(categoryRef);
+        const questionsInCategory = snapshot.val() ? Object.values(snapshot.val()) : [];
+        let questionPool: Question[] = [...questionsInCategory as Question[]];
 
-        // for (let i = 0; i < numQuestions; i++) {
-        //     await generateQuestion(questionSource, diff, topic, i, roomData);
-        // }
+        if (questionPool.length < 1000 && topic) {
+            const questionsToGenerate = Math.min(numQuestions, 1000 - questionPool.length);
+            try {
+                for (let i = 0; i < questionsToGenerate; i++) {
+                    const response = await fetch('../api/ai', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ source: questionSource, difficulty: diff, topic: topic }),
+                    });
 
-        const filteredQuestions = questionBank.filter(q =>
-            q.difficulty === diff && q.competition === questionSource
-        );
+                    if (!response.ok) {
+                        throw new Error('Failed to generate question');
+                    }
 
-        if (filteredQuestions.length < numQuestions) {
-            alert(`Warning: Only ${filteredQuestions.length} questions were found for the selected criteria. The game will proceed with this smaller number of questions.`);
+                    const newQuestion = await response.json();
+                    const newQuestionRef = push(categoryRef);
+                    await set(newQuestionRef, newQuestion);
+                    questionPool.push(newQuestion);
+                }
+            } catch(error) {
+                console.error("Error generating questions:", error);
+                alert("There was an error generating new questions. Please try again.");
+                return;
+            }
         }
-        
-        const shuffledQuestions = filteredQuestions.sort(() => 0.5 - Math.random());
-        const selectedQuestions = shuffledQuestions.slice(0, numQuestions);
 
-        selectedQuestions.forEach((question, index) => {
-            roomData.Questions[index] = question;
-        });
-        
-        roomData.numQuestions = selectedQuestions.length;
+        if (questionPool.length < numQuestions) {
+            alert(`Warning: Only ${questionPool.length} questions were found. The game will proceed with this smaller number.`);
+        }
+
+        const shuffledQuestions = questionPool.sort(() => 0.5 - Math.random());
+        const selectedQuestions = shuffledQuestions.slice(0, Math.min(numQuestions, questionPool.length));
 
         if (selectedQuestions.length === 0) {
             alert("No questions found for the selected criteria. Please change the difficulty or source.");
             return;
         }
 
+        const roomData: RoomData = {
+            roomName,
+            source: questionSource,
+            numQuestions: selectedQuestions.length,
+            timeLimit,
+            ogCreator: user?.uid!,
+            Questions: {}
+        };
+
+        selectedQuestions.forEach((question, index) => {
+            roomData.Questions[index] = question;
+        });
+
+        const roomsRef = ref(db, "rooms/" + roomId);
         await set(roomsRef, roomData);
 
         router.push(`/game?roomId=${roomId}`);
     };
-
+    
     const joinRoom = async (roomId: string, userId: string) => {
         const playerRef = ref(db, `rooms/${roomId}/players/${userId}`);
         const snapshot = await get(playerRef);
@@ -217,7 +224,6 @@ export default function CreateRoom() {
                                 />
                             </div>
                             
-                            {/* New Time Limit Input */}
                             <div className="mb-5">
                                 <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="time-limit">
                                     Time Limit (seconds)
@@ -236,7 +242,7 @@ export default function CreateRoom() {
 
                             <div className="mb-5">
                                 <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="topic">
-                                    Topic
+                                    Topic (for question generation)
                                 </label>
                                 <input
                                     id="topic"
