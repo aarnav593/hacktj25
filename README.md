@@ -1,4 +1,5 @@
-#BioBlitz
+# BioBlitz
+
 Welcome to BioBlitz! We make learning Bio fun, whether you are training for semifinals for USABO or cramming for your MCAT.
 
 This project was launched at hacktj 25. We hope to actually launch it this summer though.
