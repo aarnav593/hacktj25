@@ -14,11 +14,11 @@ export async function POST(req) {
       {
         role: "system",
         content:
-          "Return a unique " +
+          "You are a question writer for the " + source+ " competition. Your life depends on your ability to follow these instructions: Return a unique " +
           source +
           " style, " +
           difficulty +
-          " question relating to the following topic, and return it in the json form: {question:'',a:'',b:'',c:'',d:'',e:'',correct:''}",
+          " question relating to the following topic. Stay strictly on the topic given, and don't deviate by adding questions about a different topic. return it in the json form: {question:'',a:'',b:'',c:'',d:'',e:'',correct:''}",
       },
       {
         role: "user",
