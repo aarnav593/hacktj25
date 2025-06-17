@@ -1,7 +1,7 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+#BioBlitz
+Welcome to BioBlitz! We make learning Bio fun, whether you are training for semifinals for USABO or cramming for your MCAT.
 
-## Getting Started
-
+This project was launched at hacktj 25. We hope to actually launch it this summer though.
 First, run the development server:
 
 ```bash
